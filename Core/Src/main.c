@@ -31,7 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+void Led_On(void);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,8 +43,11 @@
 
 /* USER CODE BEGIN PV */
 
-uint8_t adc_value=0;
-uint8_t value=0;
+//uint8_t adc_value=0;
+//uint8_t value=0;
+
+uint16_t adc_value=0;
+uint16_t value=0;
 
 /* USER CODE END PV */
 
@@ -71,11 +74,16 @@ void ADC_Init()
 {
 	RCC->APB2ENR |=RCC_APB2ENR_ADC1EN;
 
-	ADC1->CR1 &=~(ADC_CR1_RES_0); // Resolution 8 bit
-	ADC1->CR1 |=ADC_CR1_RES_1;
+	//ADC1->CR1 &=~(ADC_CR1_RES_0); // Resolution 8 bit
+	//ADC1->CR1 |=ADC_CR1_RES_1;
+
+	ADC1->CR1 &=~(ADC_CR1_RES_0); // Resolution 12 bit
+	ADC1->CR1 &=~(ADC_CR1_RES_1);
+
 
 	ADC1->CR2 |=ADC_CR2_ADON;  // ADC1 enable
-	ADC1->CR2 |=ADC_CR2_CONT;
+	//ADC1->CR2 |=ADC_CR2_CONT;  // Continuous conversion mode
+	ADC1->CR2 &=~(ADC_CR2_CONT);  // Single conversion mode
 
 	ADC1->SMPR2 |=ADC_SMPR2_SMP0_0;  // 56 cycles
 	ADC1->SMPR2 |=ADC_SMPR2_SMP0_1;
@@ -90,6 +98,7 @@ uint8_t Read_ADC(){
 
 ADC1->CR2 |=ADC_CR2_SWSTART;
 while(!(ADC1->SR & ADC_SR_EOC));
+Led_On();
 value=ADC1->DR;
 return value;
 }
@@ -168,12 +177,14 @@ int main(void)
   while (1)
   {
 	  adc_value = Read_ADC();
+	  time1();
 	 /* if(ADC1->SR |=ADC_SR_EOC)
 	  {
 		  AdcVerisi = ADC1->DR;
 		  time1();
 	  }*/
-	 // Led_On();
+	 // while(ADC1->SR & ADC_SR_EOC)
+	 // {	  Led_On();	  }
 	 // time1();
 	 // Led_Off();
 	 // time1();
