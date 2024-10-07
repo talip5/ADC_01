@@ -82,8 +82,8 @@ void ADC_Init()
 
 
 	ADC1->CR2 |=ADC_CR2_ADON;  // ADC1 enable
-	//ADC1->CR2 |=ADC_CR2_CONT;  // Continuous conversion mode
-	ADC1->CR2 &=~(ADC_CR2_CONT);  // Single conversion mode
+	ADC1->CR2 |=ADC_CR2_CONT;  // Continuous conversion mode
+	//ADC1->CR2 &=~(ADC_CR2_CONT);  // Single conversion mode
 
 	ADC1->SMPR2 |=ADC_SMPR2_SMP0_0;  // 56 cycles
 	ADC1->SMPR2 |=ADC_SMPR2_SMP0_1;
@@ -92,13 +92,16 @@ void ADC_Init()
 	ADC->CCR |=ADC_CCR_ADCPRE_0;
 	ADC->CCR &=~(ADC_CCR_ADCPRE_1);
 
+	ADC1->HTR |=(1<<0);
+	ADC1->HTR |=(1<<1);
+
 }
 
 uint8_t Read_ADC(){
 
 ADC1->CR2 |=ADC_CR2_SWSTART;
 while(!(ADC1->SR & ADC_SR_EOC));
-Led_On();
+//Led_On();
 value=ADC1->DR;
 return value;
 }
@@ -169,6 +172,16 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+
+  /* 4- Enable Interrupt enable for EOC*/
+   //SET_BIT(USART2->CR1, USART_CR1_RXNEIE);
+  	 ADC1->CR1 |=ADC_CR1_EOCIE;
+
+   /* 5 - Enable ADC Interrupt in NVIC */
+
+	HAL_NVIC_SetPriority(ADC_IRQn, 1, 1);
+	HAL_NVIC_EnableIRQ(ADC_IRQn);
+
 
   /* USER CODE END 2 */
 
@@ -258,6 +271,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void ADC_IRQHandler()
+{
+	if(ADC1->DR >= ADC1->HTR)
+	{
+	Led_On();
+	}
+}
 
 /* USER CODE END 4 */
 
